@@ -39,7 +39,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\VSPath\SDL2-2.0.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\VSPath\glm;C:\VSPath\SDL2-2.0.3\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\VSPath\SDL2-2.0.3\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -71,9 +71,13 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Raytracer.cpp" />
+    <ClCompile Include="RenderTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Raytracer.h" />
+    <ClInclude Include="RenderTexture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

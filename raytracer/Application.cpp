@@ -1,9 +1,24 @@
+#include <glm\glm.hpp>
 #include "Application.h"
 
+Application* Application::currentApp = NULL;
 Application::Application() {
+	if (currentApp != NULL) {
+		SDL_Log("More than one Application instance!");
+	}
+
 	appTitle = "Raytracer";
+	currentApp = this;
 }
-Application::~Application() {}
+
+Application::~Application() {
+	currentApp = NULL;
+
+	if (_raytracer != NULL || _window != NULL || _renderer != NULL) {
+		SDL_Log("Application was not properly cleaned up - call Cleanup() upon exiting.");
+		Cleanup();
+	}
+}
 
 bool Application::Initialize() {
 	// Try SDL initialization
@@ -30,13 +45,25 @@ bool Application::Initialize() {
 		return false;
 	}
 
+	// Initialize the raytracer
+	_raytracer = new Raytracer();
+	_raytracer->RenderStart();
+
 	// No bad things happened
 	return true;
 }
 
 void Application::Cleanup() {
+	// Raytracer is cleaned up before the SDL window & renderer
+	if (_raytracer != NULL) {
+		delete _raytracer;
+		_raytracer = NULL;
+	}
+
 	SDL_DestroyWindow(_window);
 	SDL_DestroyRenderer(_renderer);
+	_window = NULL;
+	_renderer = NULL;
 
 	SDL_Quit();
 }
@@ -46,9 +73,10 @@ void Application::HandleEvent(SDL_Event e) {
 }
 
 void Application::PaintWindow() {
+	SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(_renderer);
 
-	// Other things
-
+	SDL_RenderCopy(_renderer, _raytracer->GetImage(), NULL, NULL);
+	
 	SDL_RenderPresent(_renderer);
 }

@@ -26,6 +26,8 @@ int main(int argc, char* argv[]) {
 
 			// Paint the window
 			app.PaintWindow();
+			// Don't hog the CPU
+			SDL_Delay(1);
 		}
 	}
 
