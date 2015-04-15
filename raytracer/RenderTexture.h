@@ -17,6 +17,8 @@ public:
 	int GetHeight() { return _height; }
 	// Return the texture's pitch
 	int GetPitch() { return _pitch; }
+	// Return the texture's pixel format
+	Uint32 GetFormat() { return _fmt; }
 
 	// Color modulation
 	void SetColor(Uint8 r, Uint8 g, Uint8 b);
@@ -30,12 +32,13 @@ public:
 	// Unlock the texture for display/use
 	bool Unlock();
 	// Retrieve the pixel data
-	void* GetPixels();
+	void* GetPixels() { return _data; }
 	// Retrieve the texture handle
 	SDL_Texture* GetTexture() { return _texture; }
 
 private:
 	int _width = 0, _height = 0, _pitch = 0;
+	Uint32 _fmt;
 	SDL_Texture* _texture = NULL;
 	void* _data = NULL;
 };

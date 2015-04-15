@@ -1,5 +1,4 @@
 #include <SDL.h>
-#include <stdio.h>
 #include "Application.h"
 
 const int SCREEN_W = 640;
@@ -11,7 +10,12 @@ int main(int argc, char* argv[]) {
 	SDL_Event e;
 	bool exit = false;
 
+
 	if (app.Initialize()) {
+		//const char *out = tinyfd_saveFileDialog("Hello", "", 0, NULL);
+		//SDL_Log("%s", out);
+
+
 		// Main application loop - poll events until exit
 		while (!exit) {
 			while (SDL_PollEvent(&e) != 0) {

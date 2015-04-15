@@ -16,6 +16,7 @@ bool RenderTexture::CreateTexture(SDL_Renderer* renderer, Uint32 fmt, int w, int
 
 	_width = w;
 	_height = h;
+	_fmt = fmt;
 	return true;
 }
 

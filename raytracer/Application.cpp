@@ -76,6 +76,7 @@ void Application::PaintWindow() {
 	SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_RenderClear(_renderer);
 
+	_raytracer->RenderStep();
 	SDL_RenderCopy(_renderer, _raytracer->GetImage(), NULL, NULL);
 	
 	SDL_RenderPresent(_renderer);
