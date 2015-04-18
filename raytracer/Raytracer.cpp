@@ -16,7 +16,7 @@ Raytracer::~Raytracer() {
 }
 
 
-void Raytracer::RenderStart() {
+void Raytracer::RenderStart(Scene* scene) {
 	// Retrieve the application object
 	Application *app = Application::currentApp;
 
@@ -26,9 +26,19 @@ void Raytracer::RenderStart() {
 
 	// Create a blank RenderTexture
 	_renderTexture->CreateTexture(app->GetRenderer(), SDL_GetWindowPixelFormat(app->GetWindow()), w, h);
+
+	// Save the scene/camera references
+	_scene = scene;
+	_camera = scene->GetCamera();
 }
 
+
 void Raytracer::RenderStep() {
+	if (_scene == nullptr || _camera == nullptr) {
+		SDL_Log("Scene/camera NULL in RenderStep() - must call RenderStart() with valid scene.");
+		return;
+	}
+
 	// High-precision timing
 	typedef chrono::system_clock Clock;
 
@@ -55,10 +65,18 @@ void Raytracer::RenderStep() {
 	for (; i < n; i++) {
 		float x = (i % (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetWidth();
 		float y = (i / (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetHeight();
-		x = x * 2 - 1; y = y * 2 - 1;
+		//x = x * 2 - 1; y = y * 2 - 1;
 
-		float val = (x + y) / 2;
-		pixels[i] = MapCol(val, val, val);
+		Ray primary = _scene->GetCamera()->GeneratePrimary({ x, y });
+
+		// Just display hits in plain colour
+		bool hit = _scene->Raycast(primary);
+		if (hit) {
+			pixels[i] = MapCol(1, 0, 0);
+		}
+		else {
+			pixels[i] = MapCol(0, 0, 0);
+		}
 
 
 		// Break out of pixel-fill after 10ms
@@ -77,6 +95,8 @@ void Raytracer::RenderStep() {
 	_renderTexture->Unlock();
 }
 
-void Raytracer::RenderEnd() {
 
+void Raytracer::RenderEnd() {
+	_scene = nullptr;
+	_camera = nullptr;
 }

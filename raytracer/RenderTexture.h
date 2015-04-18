@@ -39,7 +39,7 @@ public:
 private:
 	int _width = 0, _height = 0, _pitch = 0;
 	Uint32 _fmt;
-	SDL_Texture* _texture = NULL;
-	void* _data = NULL;
+	SDL_Texture* _texture = nullptr;
+	void* _data = nullptr;
 };
 

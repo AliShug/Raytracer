@@ -1,9 +1,9 @@
 #include <glm\glm.hpp>
 #include "Application.h"
 
-Application* Application::currentApp = NULL;
+Application* Application::currentApp = nullptr;
 Application::Application() {
-	if (currentApp != NULL) {
+	if (currentApp != nullptr) {
 		SDL_Log("More than one Application instance!");
 	}
 
@@ -12,9 +12,9 @@ Application::Application() {
 }
 
 Application::~Application() {
-	currentApp = NULL;
+	currentApp = nullptr;
 
-	if (_raytracer != NULL || _window != NULL || _renderer != NULL) {
+	if (_raytracer != nullptr || _window != nullptr || _renderer != nullptr) {
 		SDL_Log("Application was not properly cleaned up - call Cleanup() upon exiting.");
 		Cleanup();
 	}
@@ -32,7 +32,7 @@ bool Application::Initialize() {
 								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 								640, 480, SDL_WINDOW_SHOWN);
 
-	if (_window == NULL) {
+	if (_window == nullptr) {
 		SDL_Log("SDL_CreateWindow failed:\n%s", SDL_GetError());
 		return false;
 	}
@@ -40,14 +40,18 @@ bool Application::Initialize() {
 	// Initialize the renderer
 	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
 
-	if (_renderer == NULL) {
+	if (_renderer == nullptr) {
 		SDL_Log("SDL_CreateRenderer failed:\n%s", SDL_GetError());
 		return false;
 	}
 
+	// Initialize the scene & camera
+	_scene = new Scene();
+	_scene->SimpleScene();
+
 	// Initialize the raytracer
 	_raytracer = new Raytracer();
-	_raytracer->RenderStart();
+	_raytracer->RenderStart(_scene);
 
 	// No bad things happened
 	return true;
@@ -55,15 +59,15 @@ bool Application::Initialize() {
 
 void Application::Cleanup() {
 	// Raytracer is cleaned up before the SDL window & renderer
-	if (_raytracer != NULL) {
+	if (_raytracer != nullptr) {
 		delete _raytracer;
-		_raytracer = NULL;
+		_raytracer = nullptr;
 	}
 
 	SDL_DestroyWindow(_window);
 	SDL_DestroyRenderer(_renderer);
-	_window = NULL;
-	_renderer = NULL;
+	_window = nullptr;
+	_renderer = nullptr;
 
 	SDL_Quit();
 }
@@ -77,7 +81,7 @@ void Application::PaintWindow() {
 	SDL_RenderClear(_renderer);
 
 	_raytracer->RenderStep();
-	SDL_RenderCopy(_renderer, _raytracer->GetImage(), NULL, NULL);
+	SDL_RenderCopy(_renderer, _raytracer->GetImage(), nullptr, nullptr);
 	
 	SDL_RenderPresent(_renderer);
 }

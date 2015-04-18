@@ -78,15 +78,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneObj.cpp" />
     <ClCompile Include="tinyfiledialogs\tinyfiledialogs.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Ray.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="RenderTexture.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneObj.h" />
     <ClInclude Include="tinyfiledialogs\tinyfiledialogs.h" />
   </ItemGroup>
   <ItemGroup>

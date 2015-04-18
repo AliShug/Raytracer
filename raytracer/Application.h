@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <string>
 #include "Raytracer.h"
+#include "Scene.h"
 
 using namespace std;
 
@@ -31,8 +32,10 @@ public:
 	string appTitle;
 
 private:
-	SDL_Window* _window = NULL;
-	SDL_Renderer* _renderer = NULL;
+	SDL_Window* _window = nullptr;
+	SDL_Renderer* _renderer = nullptr;
 
-	Raytracer* _raytracer = NULL;
+	Raytracer* _raytracer = nullptr;
+	Scene* _scene = nullptr;
+	Camera* _camera = nullptr;
 };
