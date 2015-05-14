@@ -21,7 +21,7 @@ bool SceneObj::Intersect(const Ray &ray) {
 	// Sphere-ray intersection
 	float a, b, c;
 	a = _radius * _radius;
-	b = 2 * glm::dot()
+	//b = 2 * glm::dot()
 
 	return false;
 }
