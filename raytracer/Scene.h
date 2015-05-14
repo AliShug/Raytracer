@@ -11,7 +11,8 @@ public:
 	void SimpleScene();
 
 	// Cast a ray in the scene
-	bool Raycast(const Ray &ray);
+	HitInfo Raycast(const Ray &ray);
+	HitInfo Raycast(const Ray &ray, SceneObj* obj);
 	Camera* GetCamera() { return _camera; }
 
 private:

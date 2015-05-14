@@ -69,13 +69,19 @@ void Raytracer::RenderStep() {
 
 		Ray primary = _scene->GetCamera()->GeneratePrimary({ x, y });
 
-		// Just display hits in plain colour
-		bool hit = _scene->Raycast(primary);
-		if (hit) {
-			pixels[i] = MapCol(1, 0, 0);
+		// Primary ray shading
+		HitInfo hitInfo = _scene->Raycast(primary);
+		if (hitInfo.hit) {
+			pixels[i] = Shade(primary, hitInfo);
 		}
 		else {
-			pixels[i] = MapCol(0, 0, 0);
+			// Sky
+			if (primary.dir.y < 0) {
+				pixels[i] = MapCol(0, 0, 0);
+			}
+			else {
+				pixels[i] = MapCol(primary.dir.y, primary.dir.y, primary.dir.y);
+			}
 		}
 
 
@@ -95,6 +101,17 @@ void Raytracer::RenderStep() {
 	_renderTexture->Unlock();
 }
 
+Uint32 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo) {
+	// Simple directional light
+	glm::vec3 lightDir = { -1, -1, -1 };
+	lightDir = glm::normalize(lightDir);
+
+	// Shadowing & lambertian shading
+	Ray shadowRay = Ray(hitInfo.p, -lightDir);
+	float dot = glm::dot(-lightDir, hitInfo.n);
+
+	return MapCol(dot, dot, 0);
+}
 
 void Raytracer::RenderEnd() {
 	_scene = nullptr;

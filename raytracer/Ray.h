@@ -1,6 +1,8 @@
 #pragma once
 #include <glm\glm.hpp>
 
+class SceneObj;
+
 class Ray {
 public:
 	Ray();
@@ -11,3 +13,10 @@ public:
 	glm::vec3 dir;
 };
 
+struct HitInfo {
+	bool hit = false;
+	float dist = INFINITY;
+	glm::vec3 p = { 0, 0, 0 };
+	glm::vec3 n = { 0, 0, 0 };
+	SceneObj* obj = nullptr;
+};

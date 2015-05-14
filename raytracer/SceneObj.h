@@ -1,19 +1,27 @@
 #pragma once
 #include <glm\glm.hpp>
 #include "Ray.h"
+#include <vector>
 
 class SceneObj {
 public:
 	SceneObj();
 	~SceneObj();
 
-	// Returns the object's world position
-	glm::vec3 Position();
-	// Calculate an intersection with a ray
-	bool Intersect(const Ray &ray);
+	std::vector<SceneObj*> children;
 
-private:
-	float _radius = 0.6f;
-	glm::mat4 _local;
+	void AddChild(SceneObj *obj) {
+		children.push_back(obj);
+		obj->_parent = this;
+	}
+
+	// Returns the object's world position
+	virtual glm::vec3 Position();
+	// Calculate an intersection with a ray
+	virtual HitInfo Intersect(const Ray &ray) { return HitInfo(); }
+
+protected:
+	glm::mat4 _localM;
+	SceneObj *_parent;
 };
 

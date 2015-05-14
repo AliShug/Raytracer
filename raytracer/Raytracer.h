@@ -24,8 +24,14 @@ private:
 	Scene* _scene = nullptr;
 	Camera* _camera = nullptr;
 
+	// Shade a pixel
+	Uint32 Shade(const Ray &ray, const HitInfo &hitInfo);
+
 	// Map floating-point colour to SDL color
 	Uint32 MapCol(float r, float g, float b, float a = 1.0f) {
+		r = (r < 0) ? 0 : (r > 1) ? 1 : r;
+		g = (g < 0) ? 0 : (g > 1) ? 1 : g;
+		b = (b < 0) ? 0 : (b > 1) ? 1 : b;
 		return SDL_MapRGBA(_pixelFormat, r * 255, g * 255, b * 255, a * 255);
 	}
 };

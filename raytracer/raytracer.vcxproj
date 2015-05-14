@@ -24,7 +24,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -80,21 +80,25 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneObj.cpp" />
+    <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="tinyfiledialogs\tinyfiledialogs.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Plane.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneObj.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="tinyfiledialogs\tinyfiledialogs.h" />
   </ItemGroup>
   <ItemGroup>
