@@ -107,7 +107,15 @@ Uint32 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo) {
 	lightDir = glm::normalize(lightDir);
 
 	// Shadowing & lambertian shading
-	Ray shadowRay = Ray(hitInfo.p, -lightDir);
+	Ray shadowRay = Ray(hitInfo.p - 0.0001f * lightDir, -lightDir);
+	HitInfo shadowHit = _scene->Raycast(shadowRay);
+
+	// Apply shadows!
+	if (shadowHit.hit) {
+		return MapCol(0, 0, 0);
+	}
+	
+	// Otherwise we can shade
 	float dot = glm::dot(-lightDir, hitInfo.n);
 
 	return MapCol(dot, dot, 0);
