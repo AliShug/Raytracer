@@ -46,6 +46,10 @@ void Raytracer::RenderStep() {
 	//static default_random_engine generator;
 	//uniform_int_distribution<int> randomCol(0x00, 0xFF);
 
+	// Random jitter generator
+	static default_random_engine gen;
+	uniform_real_distribution<float> randomFloat(0, 1);
+
 	// Retrieve the application
 	Application* app = Application::currentApp;
 
@@ -63,26 +67,28 @@ void Raytracer::RenderStep() {
 	// Staggered iteration over the image pixels (constant re-rendering)
 	static int i = 0;
 	for (; i < n; i++) {
+		float pixW = 1.0f / (float)_renderTexture->GetWidth();
+		float pixH = 1.0f / (float)_renderTexture->GetHeight();
 		float x = (i % (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetWidth();
 		float y = (i / (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetHeight();
 		//x = x * 2 - 1; y = y * 2 - 1;
 
-		Ray primary = _scene->GetCamera()->GeneratePrimary({ x, y });
+		Camera *cam = _scene->GetCamera();
+		glm::vec3 col = glm::vec3(0);
 
-		// Primary ray shading
-		HitInfo hitInfo = _scene->Raycast(primary);
-		if (hitInfo.hit) {
-			pixels[i] = MapCol(Shade(primary, hitInfo));
-		}
-		else {
-			// Sky
-			if (primary.dir.y < 0) {
-				pixels[i] = MapCol(0, 0, 0);
-			}
-			else {
-				pixels[i] = MapCol(primary.dir.y, primary.dir.y, primary.dir.y);
+		int n = 4;
+		for (int i = 0; i < n; i++) {		// up pixel
+			for (int j = 0; j < n; j++) {	// across pixel
+				float px = x - 0.5f*pixW + (j + randomFloat(gen))*(pixW / n);
+				float py = y - 0.5f*pixH + (i + randomFloat(gen))*(pixH / n);
+				Ray primary = cam->GeneratePrimary({ px, py });
+				HitInfo primaryHit = _scene->Raycast(primary);
+				col += Shade(primary, primaryHit);
 			}
 		}
+
+		// Regular-grid multisampled shading
+		pixels[i] = MapCol(col / (float)(n*n));
 
 
 		// Break out of pixel-fill after 10ms
