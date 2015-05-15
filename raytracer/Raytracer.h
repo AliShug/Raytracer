@@ -25,7 +25,7 @@ private:
 	Camera* _camera = nullptr;
 
 	// Shade a pixel
-	Uint32 Shade(const Ray &ray, const HitInfo &hitInfo);
+	glm::vec3 Shade(const Ray &ray, const HitInfo &hitInfo, int depth = 0);
 
 	// Map floating-point colour to SDL color
 	Uint32 MapCol(float r, float g, float b, float a = 1.0f) {
@@ -33,6 +33,14 @@ private:
 		g = (g < 0) ? 0 : (g > 1) ? 1 : g;
 		b = (b < 0) ? 0 : (b > 1) ? 1 : b;
 		return SDL_MapRGBA(_pixelFormat, r * 255, g * 255, b * 255, a * 255);
+	}
+
+	Uint32 MapCol(glm::vec3 col) {
+		float r = col.r, g = col.g, b = col.b;
+		r = (r < 0) ? 0 : (r > 1) ? 1 : r;
+		g = (g < 0) ? 0 : (g > 1) ? 1 : g;
+		b = (b < 0) ? 0 : (b > 1) ? 1 : b;
+		return SDL_MapRGBA(_pixelFormat, r * 255, g * 255, b * 255, 255);
 	}
 };
 

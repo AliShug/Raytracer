@@ -14,7 +14,7 @@ Scene::~Scene() {
 
 void Scene::SimpleScene() {
 	_root = new SceneObj();
-	_camera = new Camera(glm::vec3(0, 1, 3), { 0.4f, 0.4f, 0 });
+	_camera = new Camera(glm::vec3(-3, 0.6f, -2), { 0, 0, 0 });
 
 	// Add some objects
 	_root->AddChild(new Plane());
