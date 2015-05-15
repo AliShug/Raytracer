@@ -79,9 +79,11 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DirLight.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Plane.cpp" />
+    <ClCompile Include="PointLight.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Raytracer.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
@@ -93,8 +95,11 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="DirLight.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Plane.h" />
+    <ClInclude Include="PointLight.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Raytracer.h" />
     <ClInclude Include="RenderTexture.h" />
@@ -105,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="chrono_io" />
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

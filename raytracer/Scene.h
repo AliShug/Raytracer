@@ -1,14 +1,21 @@
 #pragma once
 #include "SceneObj.h"
 #include "Camera.h"
+#include "Light.h"
+#include <vector>
 
 class Scene {
 public:
+	std::vector<Light*> lights;
+
 	Scene();
 	~Scene();
 
-	// Create a default scene (just one sphere)
+	// Create a scene
 	void SimpleScene();
+
+	// Scene of random assorted spheres
+	void RandomBalls();
 
 	// Cast a ray in the scene
 	HitInfo Raycast(const Ray &ray);

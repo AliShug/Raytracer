@@ -64,45 +64,93 @@ void Raytracer::RenderStep() {
 	Uint32* pixels = (Uint32*) _renderTexture->GetPixels();
 	int n = _renderTexture->GetHeight() * (_renderTexture->GetPitch() / 4);
 
-	// Staggered iteration over the image pixels (constant re-rendering)
-	static int i = 0;
-	for (; i < n; i++) {
-		float pixW = 1.0f / (float)_renderTexture->GetWidth();
-		float pixH = 1.0f / (float)_renderTexture->GetHeight();
-		float x = (i % (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetWidth();
-		float y = (i / (_renderTexture->GetPitch() / 4)) / (float) _renderTexture->GetHeight();
-		//x = x * 2 - 1; y = y * 2 - 1;
+	static bool quickRendered = false;
+	if (!quickRendered) {
+		// Quick and dirty rendering
+		// Staggered iteration over image pixels at 1/4 res
+		static int i = 0;
+		const int resDiv = 4;
+		for (; i < n; i+=resDiv) {
+			if (i % (_renderTexture->GetWidth()*resDiv) < _renderTexture->GetWidth()*(resDiv-1)) continue;
 
-		Camera *cam = _scene->GetCamera();
-		glm::vec3 col = glm::vec3(0);
+			float pixW = 1.0f / (float)(_renderTexture->GetWidth());
+			float pixH = 1.0f / (float)(_renderTexture->GetHeight());
+			float x = (i % (_renderTexture->GetPitch() / 4)) / (float)(_renderTexture->GetWidth());
+			float y = (i / (_renderTexture->GetPitch() / 4)) / (float)(_renderTexture->GetHeight());
+			//x = x * 2 - 1; y = y * 2 - 1;
 
-		// Sub-pixel jittered multisampling
-		int n = 4;
-		for (int i = 0; i < n; i++) {		// Up the pixel
-			for (int j = 0; j < n; j++) {	// Across the pixel
-				float px = x - 0.5f*pixW + (j + randomFloat(gen))*(pixW / n);
-				float py = y - 0.5f*pixH + (i + randomFloat(gen))*(pixH / n);
-				Ray primary = cam->GeneratePrimary({ px, py });
-				HitInfo primaryHit = _scene->Raycast(primary);
-				col += Shade(primary, primaryHit);
+			Camera *cam = _scene->GetCamera();
+			glm::vec3 col = glm::vec3(0);
+
+			// Directly render pixels, no sampling here
+			Ray primary = cam->GeneratePrimary({ x, y });
+			HitInfo primaryHit = _scene->Raycast(primary);
+			col = Shade(primary, primaryHit);
+			Uint32 c = MapCol(col);
+
+			for (int u = 0; u < resDiv; u++) {
+				for (int v = 0; v < resDiv; v++) {
+					pixels[i + v + u*_renderTexture->GetWidth()] = c;
+				}
+			}
+
+			// Break out of pixel-fill after 10ms
+			if (i % 100 == 0) {
+				auto current = Clock::now();
+				auto time = chrono::duration_cast<chrono::milliseconds>(current - start);
+				if (time.count() > 10) {
+					//SDL_Log("%d\n", time.count());
+					break;
+				}
 			}
 		}
-
-		// MSAA - divide by no. of samples
-		pixels[i] = MapCol(col / (float)(n*n));
-
-
-		// Break out of pixel-fill after 10ms
-		if (i % 1000 == 0) {
-			auto current = Clock::now();
-			auto time = chrono::duration_cast<chrono::milliseconds>(current - start);
-			if (time.count() > 10) {
-				//SDL_Log("%d\n", time.count());
-				break;
-			}
+		if (i == n) {
+			i = 0;
+			quickRendered = true;
 		}
 	}
-	if (i == n) i = 0;
+	else {
+		// Full rendering
+		// Staggered iteration over the image pixels (constant re-rendering)
+		static int i = 0;
+		for (; i < n; i++) {
+			float pixW = 1.0f / (float)_renderTexture->GetWidth();
+			float pixH = 1.0f / (float)_renderTexture->GetHeight();
+			float x = (i % (_renderTexture->GetPitch() / 4)) / (float)_renderTexture->GetWidth();
+			float y = (i / (_renderTexture->GetPitch() / 4)) / (float)_renderTexture->GetHeight();
+			//x = x * 2 - 1; y = y * 2 - 1;
+
+			Camera *cam = _scene->GetCamera();
+			glm::vec3 col = glm::vec3(0);
+
+			// Sub-pixel jittered multisampling
+			int n = 2;
+			for (int i = 0; i < n; i++) {		// Up the pixel
+				for (int j = 0; j < n; j++) {	// Across the pixel
+					float px = x - 0.5f*pixW + (j + randomFloat(gen))*(pixW / n);
+					float py = y - 0.5f*pixH + (i + randomFloat(gen))*(pixH / n);
+					Ray primary = cam->GeneratePrimary({ px, py });
+					HitInfo primaryHit = _scene->Raycast(primary);
+					col += Shade(primary, primaryHit);
+				}
+			}
+
+			// MSAA - divide by no. of samples
+			pixels[i] = MapCol(col / (float)(n*n));
+
+
+			// Break out of pixel-fill after 10ms
+			if (i % 1000 == 0) {
+				auto current = Clock::now();
+				auto time = chrono::duration_cast<chrono::milliseconds>(current - start);
+				if (time.count() > 10) {
+					//SDL_Log("%d\n", time.count());
+					break;
+				}
+			}
+		}
+		if (i == n) i = 0;
+	}
 	
 
 	_renderTexture->Unlock();
@@ -122,26 +170,35 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 		}
 	}
 
-	// Grab the material
+	// Grab the material and lights
 	Material *m = hitInfo.obj->mat;
+	auto lights = &_scene->lights;
 
-	// Simple directional light
-	glm::vec3 lightDir = { -1, -1, -1 };
-	lightDir = glm::normalize(lightDir);
-
-	glm::vec3 lightCol(1.2f);
-
-	// Generate the shadow ray
-	Ray shadowRay = Ray(hitInfo.p - 0.001f * lightDir, -lightDir);
-	HitInfo shadowHit = _scene->Raycast(shadowRay);
-
-	// General phong shading
-	float ambient = 0.1f;
-	float base = glm::dot(-lightDir, hitInfo.n);
+	// Reflection vector used throughout
 	glm::vec3 reflect = glm::reflect(ray.dir, hitInfo.n);
-	float spec = powf(glm::dot(-lightDir, reflect), m->specPow);
-	spec = (spec < 0) ? 0 : spec; // negative spec is bad spec
-	//spec = (spec > 1) ? 1 : spec;
+
+	// General phong lighting
+	glm::vec3 litCol(0.1f); // ambient should be replaced by GI sampling
+	glm::vec3 specCol(0.0f);
+	for (int i = 0; i < lights->size(); i++) {
+		glm::vec3 lightDir = lights->at(i)->CalcDir(hitInfo.p);
+		glm::vec3 lightCol = lights->at(i)->CalcCol(hitInfo.p);
+
+		// Generate the shadow ray
+		Ray shadowRay = Ray(hitInfo.p - 0.01f * lightDir, -lightDir);
+		HitInfo shadowHit = _scene->Raycast(shadowRay);
+
+		if (!shadowHit.hit) {
+			// Shading
+			float base = glm::dot(-lightDir, hitInfo.n);
+			float spec = powf(glm::dot(-lightDir, reflect), m->specPow);
+			spec = (spec < 0) ? 0 : spec; // negative spec is bad spec
+
+			litCol += glm::vec3(base)*lightCol;
+			specCol += glm::vec3(spec)*lightCol;
+		}
+
+	}
 
 	// Reflections
 	glm::vec3 reflection = { 0, 0, 0 };
@@ -180,12 +237,7 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 	// Surface shading
 	// Combine components according to shadowing
 	glm::vec3 surf = { 0, 0, 0 };
-	if (shadowHit.hit) {
-		surf = glm::vec3(ambient)*m->diffuse*lightCol*m->opacity*(1.0f-kr);
-	}
-	else {
-		surf = glm::vec3(base + ambient)*m->diffuse*lightCol*m->opacity*(1.0f-kr) + glm::vec3(spec)*lightCol*m->spec;
-	}
+	surf = litCol*m->diffuse*m->opacity*(1.0f-kr) + specCol*m->spec;
 
 	return surf + background + reflection;
 }
