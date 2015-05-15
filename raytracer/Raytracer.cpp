@@ -113,11 +113,11 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 
 	if (!hitInfo.hit) {
 		// Sky
+		glm::vec3 col = { 0.7f, 0.7f, 1.0f };
 		if (ray.dir.y < 0) {
-			return { 0, 0, 0 };
+			return 1.3f*col;
 		}
 		else {
-			glm::vec3 col = { 0.7f, 0.7f, 1.0f };
 			return glm::vec3(1.3f-ray.dir.y) * col;
 		}
 	}
@@ -129,6 +129,8 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 	glm::vec3 lightDir = { -1, -1, -1 };
 	lightDir = glm::normalize(lightDir);
 
+	glm::vec3 lightCol(1.2f);
+
 	// Generate the shadow ray
 	Ray shadowRay = Ray(hitInfo.p - 0.001f * lightDir, -lightDir);
 	HitInfo shadowHit = _scene->Raycast(shadowRay);
@@ -139,20 +141,53 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 	glm::vec3 reflect = glm::reflect(ray.dir, hitInfo.n);
 	float spec = powf(glm::dot(-lightDir, reflect), m->specPow);
 	spec = (spec < 0) ? 0 : spec; // negative spec is bad spec
-	spec = (spec > 1) ? 1 : spec;
+	//spec = (spec > 1) ? 1 : spec;
 
 	// Reflections
-	Ray reflectRay = Ray(hitInfo.p + 0.001f * reflect, reflect);
-	HitInfo reflectHit = _scene->Raycast(reflectRay);
-	glm::vec3 reflection = Shade(reflectRay, reflectHit, depth + 1);
+	glm::vec3 reflection = { 0, 0, 0 };
 
+	if (m->reflectivity > 0.001f) {
+		Ray reflectRay = Ray(hitInfo.p + 0.001f * reflect, reflect);
+		HitInfo reflectHit = _scene->Raycast(reflectRay);
+		reflection = Shade(reflectRay, reflectHit, depth + 1);
+	}
+
+	// Transparency / fresnel
+	glm::vec3 background = { 0, 0, 0 };
+	float nr = 1.0f / m->refractiveIndex;
+	glm::vec3 refract = glm::refract(ray.dir, hitInfo.n, nr);
+
+	float cosI = glm::dot(-ray.dir, hitInfo.n);
+	float cosT = glm::dot(refract, -hitInfo.n);
+	float rPar = (nr*cosI - cosT) / (nr*cosI + cosT);
+	float rPer = (cosI - nr*cosT) / (cosI + nr*cosT);
+
+	if (m->opacity < 0.999f) {
+		Ray refractRay = Ray(hitInfo.p + 0.01f * refract, refract);
+		HitInfo refractHit = _scene->Raycast(refractRay);
+
+		glm::vec3 outRefract = glm::refract(refractRay.dir, -refractHit.n, m->refractiveIndex);
+		Ray outRefractRay = Ray(refractHit.p + 0.01f * outRefract, outRefract);
+		HitInfo outRefractHit = _scene->Raycast(outRefractRay);
+
+		background = Shade(outRefractRay, outRefractHit, depth + 1) * (1.0f - m->opacity);
+	}
+
+	float kr = 0.5f * (rPar*rPar + rPer*rPer) * m->reflectivity;
+	reflection *= kr;
+	background *= (1.0f - kr);
+
+	// Surface shading
 	// Combine components according to shadowing
+	glm::vec3 surf = { 0, 0, 0 };
 	if (shadowHit.hit) {
-		return glm::vec3(ambient)*m->diffuse + m->diffuse*reflection*m->reflectivity;
+		surf = glm::vec3(ambient)*m->diffuse*lightCol*m->opacity*(1.0f-kr);
 	}
 	else {
-		return glm::vec3(base+ambient)*m->diffuse + glm::vec3(spec)*m->spec + m->diffuse*reflection*m->reflectivity;
+		surf = glm::vec3(base + ambient)*m->diffuse*lightCol*m->opacity*(1.0f-kr) + glm::vec3(spec)*lightCol*m->spec;
 	}
+
+	return surf + background + reflection;
 }
 
 void Raytracer::RenderEnd() {

@@ -22,9 +22,9 @@ public:
 	virtual HitInfo Intersect(const Ray &ray) { return HitInfo(); }
 
 	Material *mat;
+	glm::mat4 localM;
 
 protected:
-	glm::mat4 _localM;
 	SceneObj *_parent;
 };
 

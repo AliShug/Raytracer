@@ -2,6 +2,7 @@
 #include "Sphere.h"
 #include "Plane.h"
 #include <memory>
+#include <glm\gtc\matrix_transform.hpp>
 
 
 Scene::Scene() {
@@ -14,15 +15,16 @@ Scene::~Scene() {
 
 void Scene::SimpleScene() {
 	_root = new SceneObj();
-	_camera = new Camera(glm::vec3(-3, 0.6f, -2), { 0, 0, 0 });
+	_camera = new Camera(glm::vec3(-3, 0.1f, 2), { 0, 0, 0 });
 
 	// A couple of materials
 	Material *defaultMat = new Material();
 	Material *shiny = new Material();
-	shiny->diffuse = { 0.7f, 0.2f, 0.2f };
-	shiny->spec = { 1.0f, 1.0f, 1.0f };
-	shiny->specPow = 40;
-	shiny->reflectivity = 0.5f;
+	shiny->diffuse = { 1, 0, 0 };
+	shiny->spec = { 1.2f, 1.2f, 1.2f };
+	shiny->specPow = 200;
+	shiny->opacity = 1.0f;
+	shiny->refractiveIndex = 4.0f;
 
 	// Add some objects
 	SceneObj *plane = new Plane();
@@ -32,6 +34,8 @@ void Scene::SimpleScene() {
 
 	_root->AddChild(plane);
 	_root->AddChild(sphere);
+
+	sphere->localM = glm::translate(glm::mat4(1), glm::vec3(2, 2, 2));
 }
 
 HitInfo Scene::Raycast(const Ray &ray) {

@@ -7,5 +7,5 @@ public:
 	~Material();
 
 	glm::vec3 diffuse, spec;
-	float specPow, reflectivity;
+	float specPow, reflectivity, opacity, refractiveIndex;
 };

@@ -6,7 +6,9 @@ Material::Material() {
 	spec = glm::vec3(0.3f);
 
 	specPow = 10.0f;
-	reflectivity = 0.01f;
+	opacity = 1.0f;
+	refractiveIndex = 1.0f;
+	reflectivity = 0.0f;
 }
 
 
