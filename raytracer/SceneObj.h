@@ -1,6 +1,7 @@
 #pragma once
 #include <glm\glm.hpp>
 #include "Ray.h"
+#include "Material.h"
 #include <vector>
 
 class SceneObj {
@@ -19,6 +20,8 @@ public:
 	virtual glm::vec3 Position();
 	// Calculate an intersection with a ray
 	virtual HitInfo Intersect(const Ray &ray) { return HitInfo(); }
+
+	Material *mat;
 
 protected:
 	glm::mat4 _localM;

@@ -76,9 +76,10 @@ void Raytracer::RenderStep() {
 		Camera *cam = _scene->GetCamera();
 		glm::vec3 col = glm::vec3(0);
 
+		// Sub-pixel jittered multisampling
 		int n = 4;
-		for (int i = 0; i < n; i++) {		// up pixel
-			for (int j = 0; j < n; j++) {	// across pixel
+		for (int i = 0; i < n; i++) {		// Up the pixel
+			for (int j = 0; j < n; j++) {	// Across the pixel
 				float px = x - 0.5f*pixW + (j + randomFloat(gen))*(pixW / n);
 				float py = y - 0.5f*pixH + (i + randomFloat(gen))*(pixH / n);
 				Ray primary = cam->GeneratePrimary({ px, py });
@@ -87,7 +88,7 @@ void Raytracer::RenderStep() {
 			}
 		}
 
-		// Regular-grid multisampled shading
+		// MSAA - divide by no. of samples
 		pixels[i] = MapCol(col / (float)(n*n));
 
 
@@ -116,9 +117,13 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 			return { 0, 0, 0 };
 		}
 		else {
-			return { ray.dir.y, ray.dir.y, ray.dir.y };
+			glm::vec3 col = { 0.7f, 0.7f, 1.0f };
+			return glm::vec3(1.3f-ray.dir.y) * col;
 		}
 	}
+
+	// Grab the material
+	Material *m = hitInfo.obj->mat;
 
 	// Simple directional light
 	glm::vec3 lightDir = { -1, -1, -1 };
@@ -132,8 +137,9 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 	float ambient = 0.1f;
 	float base = glm::dot(-lightDir, hitInfo.n);
 	glm::vec3 reflect = glm::reflect(ray.dir, hitInfo.n);
-	float spec = powf(glm::dot(-lightDir, reflect), 30);
+	float spec = powf(glm::dot(-lightDir, reflect), m->specPow);
 	spec = (spec < 0) ? 0 : spec; // negative spec is bad spec
+	spec = (spec > 1) ? 1 : spec;
 
 	// Reflections
 	Ray reflectRay = Ray(hitInfo.p + 0.001f * reflect, reflect);
@@ -142,10 +148,10 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 
 	// Combine components according to shadowing
 	if (shadowHit.hit) {
-		return glm::vec3(ambient, ambient, 0) + reflection*0.3f;
+		return glm::vec3(ambient)*m->diffuse + m->diffuse*reflection*m->reflectivity;
 	}
 	else {
-		return glm::vec3(base + spec + ambient, base + spec + ambient, spec) + reflection*0.3f;
+		return glm::vec3(base+ambient)*m->diffuse + glm::vec3(spec)*m->spec + m->diffuse*reflection*m->reflectivity;
 	}
 }
 

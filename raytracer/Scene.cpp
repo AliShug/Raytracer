@@ -16,9 +16,22 @@ void Scene::SimpleScene() {
 	_root = new SceneObj();
 	_camera = new Camera(glm::vec3(-3, 0.6f, -2), { 0, 0, 0 });
 
+	// A couple of materials
+	Material *defaultMat = new Material();
+	Material *shiny = new Material();
+	shiny->diffuse = { 0.7f, 0.2f, 0.2f };
+	shiny->spec = { 1.0f, 1.0f, 1.0f };
+	shiny->specPow = 40;
+	shiny->reflectivity = 0.5f;
+
 	// Add some objects
-	_root->AddChild(new Plane());
-	_root->AddChild(new Sphere());
+	SceneObj *plane = new Plane();
+	SceneObj *sphere = new Sphere();
+	plane->mat = defaultMat;
+	sphere->mat = shiny;
+
+	_root->AddChild(plane);
+	_root->AddChild(sphere);
 }
 
 HitInfo Scene::Raycast(const Ray &ray) {

@@ -18,6 +18,7 @@ HitInfo Plane::Intersect(const Ray &ray) {
 		out.hit = true;
 		out.p = ray.p + t*ray.dir;
 		out.n = _n;
+		out.obj = this;
 	}
 
 	return out;
