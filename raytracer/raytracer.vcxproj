@@ -91,6 +91,7 @@
     <ClCompile Include="SceneObj.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="tinyfiledialogs\tinyfiledialogs.c" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -107,6 +108,7 @@
     <ClInclude Include="SceneObj.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="chrono_io" />

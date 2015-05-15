@@ -17,7 +17,8 @@ HitInfo Plane::Intersect(const Ray &ray) {
 		out.dist = t;
 		out.hit = true;
 		out.p = ray.p + t*ray.dir;
-		out.n = _n;
+		// Correct normal based on ray dir
+		out.n = (glm::dot(_n, ray.dir) > 0) ? -_n : _n;
 		out.obj = this;
 	}
 

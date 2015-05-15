@@ -48,7 +48,8 @@ bool Application::Initialize() {
 	// Initialize the scene & camera
 	_scene = new Scene();
 	//_scene->SimpleScene();
-	_scene->RandomBalls();
+	//_scene->RandomBalls();
+	_scene->TriScene();
 
 	// Initialize the raytracer
 	_raytracer = new Raytracer();

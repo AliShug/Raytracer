@@ -1,7 +1,9 @@
 #include "Scene.h"
 #include "Sphere.h"
 #include "Plane.h"
+#include "Triangle.h"
 #include "DirLight.h"
+#include "PointLight.h"
 #include <memory>
 #include <glm\gtc\matrix_transform.hpp>
 #include <SDL.h>
@@ -16,26 +18,32 @@ Scene::~Scene() {
 	if (_camera) delete _camera;
 }
 
+// Test scenes... //////////
+
 void Scene::SimpleScene() {
 	_root = new SceneObj();
-	_camera = new Camera(glm::vec3(4, 3, 2), { 0, 0, 0 });
+	_camera = new Camera(glm::vec3(0, 3, 3), { 1, 0, 0 });
+
+	lights.push_back(new DirLight(glm::vec3(1.0f), { 1, 1, -1 }));
+	lights.push_back(new PointLight(glm::vec3(0.3f, 0.3f, 1.0f), { 2.5f, 0.5f, 1 }, 5.0f));
 
 	// A couple of materials
 	Material *defaultMat = new Material();
 
 	Material *shiny = new Material();
-	shiny->diffuse = { 1, 0, 0 };
-	shiny->spec = { 1.2f, 1.2f, 1.2f };
+	shiny->diffuse = glm::vec3(1.0f);
+	shiny->spec = glm::vec3(1.2f);
 	shiny->specPow = 200;
 	shiny->reflectivity = 1.0f;
-	shiny->refractiveIndex = 4.0f;
+	shiny->refractiveIndex = 1.45f;
+	shiny->opacity = 0.1f;
 
 	Material *shiny2 = new Material();
-	shiny2->diffuse = { 0.8f, 0.8f, 0 };
+	shiny2->diffuse = { 0.8f, 0.8f, 0.1f };
 	shiny2->spec = { 1.2f, 1.2f, 1.2f };
 	shiny2->specPow = 200;
 	shiny2->reflectivity = 1.0f;
-	shiny2->refractiveIndex = 2.0f;
+	shiny2->refractiveIndex = 1.8f;
 
 	// Add some objects
 	SceneObj *plane = new Plane();
@@ -54,7 +62,7 @@ void Scene::SimpleScene() {
 	_root->AddChild(sphere3);
 
 	sphere->localM = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 1));
-	sphere2->localM = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.8f, 0));
+	sphere2->localM = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0.8f, 0));
 	sphere3->localM = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, 0.2f, 0));
 	sphere3->localM = glm::scale(sphere3->localM, glm::vec3(2.0f, 2.0f, 2.0f));
 }
@@ -63,33 +71,62 @@ void Scene::RandomBalls() {
 	// Add some directional lights
 	//lights.push_back(new DirLight(glm::vec3(0.4f), { -1, -1, -1 }));
 	//lights.push_back(new DirLight(glm::vec3(0.6f), { -1, 1, -1 }));
+	//lights.push_back(new PointLight(glm::vec3(1.0f), { 0, 5, 0 }, 8.0f));
+	lights.push_back(new PointLight(glm::vec3(1.0f, 0.5f, 0.0f), { 5, 0, 0 }, 8.0f));
+	lights.push_back(new PointLight(glm::vec3(0.3f, 0.3f, 1.0f), { 0, 1, -3 }, 8.0f));
+	lights.push_back(new PointLight(glm::vec3(1.0f, 0.3f, 0.3f), { 0, 0, 2 }, 8.0f));
 
-	int nBalls = 10;
+	int nBalls = 7;
 	std::default_random_engine gen;
 	std::uniform_real_distribution<float> randDist(-1, 1);
+	std::uniform_real_distribution<float> randScale(0.4f, 1.0f);
 	std::uniform_real_distribution<float> randFloat(0, 1);
-	gen.seed(time(NULL));
+	//gen.seed(time(NULL));
+	gen.seed(42);
 
 	_root = new SceneObj();
-	_camera = new Camera({ 4, 0.5f, 2 }, { 0, 0, 0 });
+	_camera = new Camera({ 5, 6, 2.5f }, { 0, 0.5f, 0 });
 
 	for (int i = 0; i < nBalls; i++) {
 		SceneObj *ball = new Sphere();
 		Material *mat = new Material();
 		mat->diffuse = { randFloat(gen), randFloat(gen), randFloat(gen) };
-		mat->reflectivity = 0.2f;
-		mat->refractiveIndex = 2.0f;
-		mat->specPow = 200;
+		mat->spec = glm::vec3(1.0f);
+		mat->reflectivity = 1.0f;
+		mat->refractiveIndex = 6.0f;
+		mat->specPow = 300.0f;
 		ball->mat = mat;
 
 		ball->localM = glm::translate(glm::mat4(1.0f), glm::vec3(
 			randDist(gen)*2.0f,
-			randDist(gen)*2.0f,
+			1+randDist(gen),
 			randDist(gen)*2.0f));
-		ball->localM = glm::scale(ball->localM, glm::vec3(randFloat(gen) * 2));
+		ball->localM = glm::scale(ball->localM, glm::vec3(randScale(gen)));
 
 		_root->AddChild(ball);
 	}
+
+	SceneObj *plane = new Plane();
+	plane->mat = new Material();
+	_root->AddChild(plane);
+}
+
+void Scene::TriScene() {
+	_root = new SceneObj();
+	_camera = new Camera(glm::vec3(0, 0.5f, 3), { 0, 0.2f, 0 });
+
+	lights.push_back(new DirLight(glm::vec3(1.0f), { 1, 1, -1 }));
+	lights.push_back(new PointLight(glm::vec3(0.4f, 0.4f, 1.0f), { -1, 0.5f, 1 }, 5.0f));
+
+	SceneObj *plane = new Plane();
+	plane->mat = new Material();
+
+	SceneObj *tri = new Triangle({ 0, 1, 0 }, { -1, 0, 0 }, { 0.5f, 0.2f, 0.0f });
+	tri->mat = new Material();
+	tri->mat->refractiveIndex = 1.05f;
+
+	_root->AddChild(plane);
+	_root->AddChild(tri);
 }
 
 HitInfo Scene::Raycast(const Ray &ray) {

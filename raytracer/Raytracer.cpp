@@ -34,6 +34,11 @@ void Raytracer::RenderStart(Scene* scene) {
 
 
 void Raytracer::RenderStep() {
+	static bool quickRendered = false;
+	static bool rendered = false;
+
+	if (rendered) return; // Completed rendering
+
 	if (_scene == nullptr || _camera == nullptr) {
 		SDL_Log("Scene/camera NULL in RenderStep() - must call RenderStart() with valid scene.");
 		return;
@@ -64,10 +69,9 @@ void Raytracer::RenderStep() {
 	Uint32* pixels = (Uint32*) _renderTexture->GetPixels();
 	int n = _renderTexture->GetHeight() * (_renderTexture->GetPitch() / 4);
 
-	static bool quickRendered = false;
 	if (!quickRendered) {
 		// Quick and dirty rendering
-		// Staggered iteration over image pixels at 1/4 res
+		// Staggered iteration over image pixels at 1/4 res with no AA
 		static int i = 0;
 		const int resDiv = 4;
 		for (; i < n; i+=resDiv) {
@@ -149,7 +153,10 @@ void Raytracer::RenderStep() {
 				}
 			}
 		}
-		if (i == n) i = 0;
+		if (i == n) {
+			i = 0;
+			rendered = true;
+		}
 	}
 	
 
@@ -181,23 +188,22 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 	glm::vec3 litCol(0.1f); // ambient should be replaced by GI sampling
 	glm::vec3 specCol(0.0f);
 	for (int i = 0; i < lights->size(); i++) {
-		glm::vec3 lightDir = lights->at(i)->CalcDir(hitInfo.p);
-		glm::vec3 lightCol = lights->at(i)->CalcCol(hitInfo.p);
+		LightInfo li = lights->at(i)->CalcLightingInfo(hitInfo.p);
 
 		// Generate the shadow ray
-		Ray shadowRay = Ray(hitInfo.p - 0.01f * lightDir, -lightDir);
+		Ray shadowRay = Ray(hitInfo.p + 0.01f * li.dir, li.dir);
 		HitInfo shadowHit = _scene->Raycast(shadowRay);
 
-		if (!shadowHit.hit) {
+		if (!shadowHit.hit || shadowHit.dist > li.shadowDist) {
 			// Shading
-			float base = glm::dot(-lightDir, hitInfo.n);
-			float spec = powf(glm::dot(-lightDir, reflect), m->specPow);
+			float base = glm::dot(li.dir, hitInfo.n);
+			if (base < 0) continue;
+			float spec = powf(glm::dot(li.dir, reflect), m->specPow);
 			spec = (spec < 0) ? 0 : spec; // negative spec is bad spec
 
-			litCol += glm::vec3(base)*lightCol;
-			specCol += glm::vec3(spec)*lightCol;
+			litCol += glm::vec3(base)*li.col;
+			specCol += glm::vec3(spec)*li.col;
 		}
-
 	}
 
 	// Reflections

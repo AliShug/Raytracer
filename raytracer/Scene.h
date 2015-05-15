@@ -17,6 +17,9 @@ public:
 	// Scene of random assorted spheres
 	void RandomBalls();
 
+	// Tri test scene
+	void TriScene();
+
 	// Cast a ray in the scene
 	HitInfo Raycast(const Ray &ray);
 	HitInfo Raycast(const Ray &ray, SceneObj* obj);

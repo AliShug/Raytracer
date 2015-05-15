@@ -7,10 +7,10 @@ DirLight::DirLight(glm::vec3 col, glm::vec3 dir) {
 
 DirLight::~DirLight() {}
 
-glm::vec3 DirLight::CalcCol(const glm::vec3 &pt) {
-	return _col;
-}
+LightInfo DirLight::CalcLightingInfo(const glm::vec3 &pt) {
+	LightInfo li;
+	li.dir = _dir;
+	li.col = _col;
 
-glm::vec3 DirLight::CalcDir(const glm::vec3 &pt){
-	return _dir;
+	return li;
 }
