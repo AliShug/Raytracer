@@ -229,11 +229,14 @@ glm::vec3 Raytracer::Shade(const Ray &ray, const HitInfo &hitInfo, int depth) {
 		Ray refractRay = Ray(hitInfo.p + 0.01f * refract, refract);
 		HitInfo refractHit = _scene->Raycast(refractRay);
 
-		glm::vec3 outRefract = glm::refract(refractRay.dir, -refractHit.n, m->refractiveIndex);
-		Ray outRefractRay = Ray(refractHit.p + 0.01f * outRefract, outRefract);
-		HitInfo outRefractHit = _scene->Raycast(outRefractRay);
+		// Only display transparency where we refracted back out again
+		if (refractHit.obj == hitInfo.obj) {
+			glm::vec3 outRefract = glm::refract(refractRay.dir, -refractHit.n, m->refractiveIndex);
+			Ray outRefractRay = Ray(refractHit.p + 0.01f * outRefract, outRefract);
+			HitInfo outRefractHit = _scene->Raycast(outRefractRay);
 
-		background = Shade(outRefractRay, outRefractHit, depth + 1) * (1.0f - m->opacity);
+			background = Shade(outRefractRay, outRefractHit, depth + 1) * (1.0f - m->opacity);
+		}
 	}
 
 	float kr = 0.5f * (rPar*rPar + rPer*rPer) * m->reflectivity;

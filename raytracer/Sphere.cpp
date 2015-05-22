@@ -47,7 +47,9 @@ HitInfo Sphere::Intersect(const Ray &ray) {
 		p4 = localM*p4;
 		out.p = glm::vec3(p4);
 		out.dist = glm::distance(ray.p, out.p);
-		out.n = glm::normalize(p + dir*d);
+
+		glm::vec4 n4 = glm::vec4(p + dir*d, 0.0f);
+		out.n = glm::normalize(glm::vec3((glm::transpose(invM) * n4)));
 		out.hit = true;
 		out.obj = this;
 	}
